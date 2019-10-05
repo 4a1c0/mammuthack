@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-
+from game import Games
 # Work with Python 3.6
 import discord
 import os
 
 discord_hello_token = os.environ['DISCORD_HELLO_TOKEN']
 
-
+games = Games()
 
 client = discord.Client()
 
@@ -37,6 +37,31 @@ async def on_message(message):
     if message.content.startswith('!whisper'):
         #user=await client.get_user_info(message.author.id)
         await message.author.send("I'm a very tall midget")
+    
+    if message.content.startswith('!join'):
+        current_channel = str(message.channel.guild) + str(message.channel.id)
+        if current_channel in games:
+            games.addUser(current_channel, message.author)
+        else:
+            games.addChannel(current_channel)
+            games.addUser(current_channel, message.author)
+        msg = 'User {0.author.mention} is included in the {1} game'.format(message, current_channel)
+        await message.channel.send(msg)
+
+    if message.content.startswith('!users'):
+        current_channel = str(message.channel.guild) + str(message.channel.id)
+        msg = '''Joined users in game:
+        '''
+        if current_channel in games:
+            for user in games[current_channel]:
+                msg += '''user 
+                '''.format(user)
+        else :
+            msg = ''' No users in THE GAME'''
+        await message.channel.send(msg)
+    
+    if message.content.startswith('!start'):
+        
         
 
 @client.event
