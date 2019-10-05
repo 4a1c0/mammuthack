@@ -56,15 +56,28 @@ class Game:
 
 
 class Round:
-    """Ronda, contiene el turno de todos los jugadores"""
-    def __init__(self, order=False):
+    """5 rondas"""
+    """Ronda, contiene el turno/stage de todos los jugadores"""
+    def __init__(self, players, order=False):
         self.order = False
+        self.players = players if players else []
+        pass
+    pass
 
+
+class Stage:
+    """cueva hasta que no queden jugadores"""
+    """Fase asincrona, contiene acciones para grupo de jugadores sin orden concreto.
+    todo el mundo coge cartas
+    ...
+    """
+    def __init__(self):
         pass
     pass
 
 
 class Turn:
+    """"""
     """Turno, contiene las fases de los jugadores involucrados"""
     def __init__(self):
         pass
@@ -72,21 +85,20 @@ class Turn:
 
 
 class Phase:
-    """Sub-turno/Fase, contiene la accion que tiene que ejecutar el jugador
+    """Sub-turno/Fase, contiene las opciones que tiene que ejecutar el jugador
     coger carta
     jugar mano
     fin del turno
     """
-    def __init__(self):
-        pass
+    def __init__(self, name='unknown', description='description', events=None, actions=None):
+        self.name = name
+        self.description = description
+        self.events = events if events else []
+        self.actions = actions if actions else []
     pass
 
 
-class Stage:
-    """Fase asincrona, contiene acciones para grupo de jugadores sin orden concreto.
-    todo el mundo coge cartas
-    ...
-    """
+class Action:
     def __init__(self):
         pass
     pass
