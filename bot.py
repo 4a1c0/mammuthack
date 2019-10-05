@@ -83,7 +83,7 @@ async def on_message(message):
         if message.content.startswith('!stats'):
             
             if message.author.id in users:
-                msg = str(users[message.author.id])
+                msg = str(users[message.author.id]) + HI
             else:
                 msg = "No game has started "
 
