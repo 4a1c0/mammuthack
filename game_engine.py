@@ -4,12 +4,11 @@ import copy
 
 class Game:
 
-    deck = Deck()
-
     def __init__(self):
+        self.deck = Deck()
         pass
 
-    def createDeck():
+    def createDeck(self):
 
         tresors = [Card( str(x) + " diamants!","Reparteix " + str(x) + " diamants." , "Tresor" , {"reparteix":x}) for x in range(3,18)]
         
@@ -43,16 +42,16 @@ class Game:
         reliquies = []
 
         reliquia = Card("Una reliquia!", "Una reliquia que te recompensara con diamantes", "Reliquia")
-        reliques.append(reliquia)
-        reliques.append(copy.deepcopy(reliquia))
-        reliques.append(copy.deepcopy(reliquia))
-        reliques.append(copy.deepcopy(reliquia))
-        reliques.append(copy.deepcopy(reliquia))
-        reliques.append(copy.deepcopy(reliquia))
+        reliquies.append(reliquia)
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
 
-        deck.add(tresors)
-        deck.add(trampes)
-        deck.add(reliquies)
+        self.deck.add(tresors)
+        self.deck.add(trampes)
+        self.deck.add(reliquies)
 
 
 class Round:
