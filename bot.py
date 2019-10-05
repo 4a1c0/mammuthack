@@ -10,6 +10,7 @@ discord_hello_token = os.environ['DISCORD_HELLO_TOKEN']
 games = Games()
 users = {}
 channelgame = {}
+usersresponse = {}
 
 client = discord.Client()
 
@@ -81,6 +82,8 @@ async def on_message(message):
                         await client.get_user(user.id).send("Private DM")
             await message.channel.send(msg)
             await message.channel.send("Game ")
+            for user in games[current_channel]:
+                usersresponse[current_channel] = {user : 0}
             # channelgame[current_channel] = Game()
 
             # resp = channelgame[current_channel].Start()
@@ -89,11 +92,18 @@ async def on_message(message):
         if message.content.startswith('!stats'):
             
             if message.author.id in users:
-                msg = str(users[message.author.id]) + "HI"
+                msg = str(users[message.author.id]) + str(usersresponse[users[message.author.id]][message.author.id])
             else:
                 msg = "No game has started "
 
             await message.author.send(msg)
+        if message.content.startswith('!continue'):
+            if message.author.id in users:
+                usersresponse[users[message.author.id]][message.author.id]= 1
+
+        if message.content.startswith('!leave'):
+            if message.author.id in users:
+                usersresponse[users[message.author.id]][message.author.id]= -1
 
         
 
