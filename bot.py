@@ -9,6 +9,7 @@ discord_hello_token = os.environ['DISCORD_HELLO_TOKEN']
 
 games = Games()
 users = {}
+channelgame = {}
 
 client = discord.Client()
 
@@ -80,6 +81,10 @@ async def on_message(message):
                         await client.get_user(user.id).send("Private DM")
             await message.channel.send(msg)
             await message.channel.send("Game ")
+            # channelgame[current_channel] = Game()
+
+            # resp = channelgame[current_channel].Start()
+            
     else:  # Private DM
         if message.content.startswith('!stats'):
             
