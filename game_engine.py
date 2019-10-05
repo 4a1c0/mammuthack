@@ -4,6 +4,29 @@ import copy
 
 
 class Game:
+    def __init__(self, players=None, rounds=None, board=None, rules=None, event_list=None):
+        class Deck(deque):
+            pass
+
+        class Pile:
+            pass
+
+        self.players = players if players else [
+            self.Player(x, 'test' + str(x), {'active': True}, {'gems': 0}) for x in range(5)
+        ]
+
+        self.rounds = rounds if rounds else [
+            self.Round(players, None, order=True) for x in range(5)
+        ]
+
+        self.board = board if board else \
+            self.Board(
+                desk=Deck(['Card(' + str(n) + ')' for n in range(30)]),
+                discard=Pile(),
+                visible=Pile(),
+                counter=5
+            )
+
     class Board:
         def __init__(self, **kwargs):
             for k in kwargs:
@@ -33,34 +56,13 @@ class Game:
             for p in self.players:
                 p.public['active'] = True
 
-    def __init__(self, players=None, rounds=None, board=None, rules=None, event_list=None):
-        class Deck(deque):
-            pass
 
-        class Pile:
-            pass
-
-        self.players = players if players else [
-            self.Player(x, 'test' + str(x), {'active': True}, {'gems': 0}) for x in range(5)
-        ]
-
-        self.rounds = rounds if rounds else [
-            self.Round(players, None, order=True) for x in range(5)
-        ]
-
-        self.board = board if board else \
-            self.Board(
-                desk=Deck(['Card(' + str(n) + ')' for n in range(30)]),
-                discard=Pile(),
-                visible=Pile(),
-                counter=5
-            )
 
     class EventQueue(deque):
         def execute(self):
             event = self.popleft()
             next_events = event.execute()
-            print(next_events)
+            # print(next_events)
 
     class Event:
         """Acciones que generan una reaccion
@@ -78,9 +80,6 @@ class Game:
 
         def execute(self, target=None, **parameters):
             self.function(target if target else self.target, **parameters)
-            pass
-
-        pass
 
     def main_loop(self):
         def decrease(target, **kargs):
@@ -99,7 +98,7 @@ class Game:
             print('mundo')
             event_queue.append(self.Event('decrease', '-1', self.board, decrease))
 
-        self.deck = Deck()
+        # self.deck = Deck()
 
         event_queue = self.EventQueue([
             self.Event('intro', '', None, introduction),
