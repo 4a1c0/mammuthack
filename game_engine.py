@@ -156,30 +156,26 @@ class Game:
         self.deck.add(reliquies)
 
 
-class Card():
+class Card:
     """Representation of a Card"""
-    def __init__(self, name, description, cardType, effects={}):
+    def __init__(self, name, description, card_type, effects=None):
         self.name = name
         self.description = description
-        self.cardType = cardType
-        self.effects = effects
+        self.cardType = card_type
+        self.effects = effects if effects else {}
     pass
 
 
-class Deck():
+class Deck:
     """Group of cards"""
-
-    cards = []
-
     def add(self, card):
         if type(card) is list:
-            cards = cards + card
+            cards = self.cards + card
         else:
-            cards.append(card)
+            self.cards.append(card)
 
-    def __init__(self):
-        pass
-    pass
+    def __init__(self, cards):
+        self.cards = []
 
 
 if __name__ == '__main__':
