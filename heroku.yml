@@ -1,5 +1,7 @@
 build:
   docker:
     web: Dockerfile
+  config:
+    DISCORD_HELLO_TOKEN : $DISCORD_HELLO_TOKEN
   run:
     web: python bot.py
