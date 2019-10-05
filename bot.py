@@ -9,16 +9,18 @@ import asyncio
 
 from datetime import datetime
 
+
+
 async def check_turn(client,timestamps, usersresponse):
     while True:
         await asyncio.sleep(1)
         # threading.Timer(5.0, check_turn, [client,timestamps, usersresponse]).start()
         for channel, time in timestamps.items(): 
-            if datetime.timestamp(datetime.now()) - time  > 10 and datetime.timestamp(datetime.now()) - time  < 11:
+            if int(datetime.timestamp(datetime.now())) - time  >= 10 and int(datetime.timestamp(datetime.now())) - time  < 11:
                 for user, val in usersresponse[channel].items():
                     if val == 0:
                         await client.get_user(user.id).send("Respon")
-            if datetime.timestamp(datetime.now()) - time  > 20 and datetime.timestamp(datetime.now()) - time  < 21:
+            if int(datetime.timestamp(datetime.now())) - time  >= 20 and int(datetime.timestamp(datetime.now())) - time  < 21:
                 for user, val in usersresponse[channel].items():
                     if val == 0:
                         await client.get_user(user.id).send("Massa Tard")
@@ -105,7 +107,7 @@ async def on_message(message):
                         await client.get_user(user.id).send("Private DM")
             await message.channel.send(msg)
             await message.channel.send("Game ")
-            timestamps[current_channel] = datetime.timestamp(datetime.now())
+            timestamps[current_channel] = int(datetime.timestamp(datetime.now()))
             for user in games[current_channel]:
                 usersresponse[current_channel] = {user : 0 }
             # await check_turn(client,timestamps, usersresponse)
@@ -125,10 +127,12 @@ async def on_message(message):
         if message.content.startswith('!continue'):
             if message.author.id in users:
                 usersresponse[users[message.author.id]][message.author.id]= 1
+                await check_turn(client,timestamps, usersresponse)
 
         if message.content.startswith('!leave'):
             if message.author.id in users:
                 usersresponse[users[message.author.id]][message.author.id]= -1
+                await check_turn(client,timestamps, usersresponse)
 
         
 
