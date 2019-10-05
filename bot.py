@@ -6,6 +6,8 @@ import os
 
 discord_hello_token = os.environ['DISCORD_HELLO_TOKEN']
 
+
+
 client = discord.Client()
 
 @client.event
@@ -28,8 +30,14 @@ async def on_message(message):
 !echo - repeat what was typed
 !hello - replies with 'hello <username>'
 !help - this page
+!whisper
 '''
         await message.channel.send(msg)
+    
+    if message.content.startswith('!whisper'):
+        #user=await client.get_user_info(message.author.id)
+        await message.author.send("I'm a very tall midget")
+        
 
 @client.event
 async def on_ready():
@@ -37,5 +45,6 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+
 
 client.run(discord_hello_token)
