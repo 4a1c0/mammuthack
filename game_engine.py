@@ -2,12 +2,6 @@
 from collections import deque
 import copy
 
-class Game:
-    def __init__(self):
-        self.deck = Deck()
-        pass
-
-
 
 class Game:
     class Board:
@@ -104,6 +98,8 @@ class Game:
         def initial_turn(target, **kargs):
             print('mundo')
             event_queue.append(self.Event('decrease', '-1', self.board, decrease))
+
+        self.deck = Deck()
 
         event_queue = self.EventQueue([
             self.Event('intro', '', None, introduction),
