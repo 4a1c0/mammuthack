@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from game import Games
+from game_engine import Game
 # Work with Python 3.6
 import discord
 import os
@@ -77,8 +78,8 @@ async def on_message(message):
                     for user in games[current_channel]:
                         users[user.id] = current_channel
                         await client.get_user(user.id).send("Private DM")
-
             await message.channel.send(msg)
+            await message.channel.send("Game ")
     else:  # Private DM
         if message.content.startswith('!stats'):
             
