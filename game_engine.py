@@ -1,5 +1,12 @@
 #!/bin/env python3
 from collections import deque
+import copy
+
+class Game:
+    def __init__(self):
+        self.deck = Deck()
+        pass
+
 
 
 class Game:
@@ -106,9 +113,79 @@ class Game:
         while event_queue:
             event_queue.execute()
 
+    def createDeck(self):
+
+        tresors = [Card(str(x) + " diamants!", "Reparteix " + str(x) + " diamants.", "Tresor", {"reparteix": x}) for x
+                   in range(3, 18)]
+
+        trampes = []
+
+        trampaAriet = Card("Trampa d'ariet", "Una trampa d'ariet amb punxes", "Trampa")
+        trampes.append(trampaAriet)
+        trampes.append(copy.deepcopy(trampaAriet))
+        trampes.append(copy.deepcopy(trampaAriet))
+
+        trampaAranyes = Card("Trampa d'aranyes", "Una trampa d'aranyes gegants", "Trampa")
+        trampes.append(trampaAranyes)
+        trampes.append(copy.deepcopy(trampaAranyes))
+        trampes.append(copy.deepcopy(trampaAranyes))
+
+        trampaSerps = Card("Trampa de serps", "Una trampa amb serps verinoses", "Trampa")
+        trampes.append(trampaSerps)
+        trampes.append(copy.deepcopy(trampaSerps))
+        trampes.append(copy.deepcopy(trampaSerps))
+
+        trampaRoques = Card("Trampa de roques", "Una trampa de roques", "Trampa")
+        trampes.append(trampaRoques)
+        trampes.append(copy.deepcopy(trampaRoques))
+        trampes.append(copy.deepcopy(trampaRoques))
+
+        trampaLava = Card("Trampa de lava", "Una trampa de pou de lava", "Trampa")
+        trampes.append(trampaLava)
+        trampes.append(copy.deepcopy(trampaLava))
+        trampes.append(copy.deepcopy(trampaLava))
+
+        reliquies = []
+
+        reliquia = Card("Una reliquia!", "Una reliquia que te recompensara con diamantes", "Reliquia")
+        reliquies.append(reliquia)
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+        reliquies.append(copy.deepcopy(reliquia))
+
+        self.deck.add(tresors)
+        self.deck.add(trampes)
+        self.deck.add(reliquies)
+
+
+class Card():
+    """Representation of a Card"""
+    def __init__(self, name, description, cardType, effects={}):
+        self.name = name
+        self.description = description
+        self.cardType = cardType
+        self.effects = effects
+    pass
+
+
+class Deck():
+    """Group of cards"""
+
+    cards = []
+
+    def add(self, card):
+        if type(card) is list:
+            cards = cards + card
+        else:
+            cards.append(card)
+
+    def __init__(self):
+        pass
+    pass
+
 
 if __name__ == '__main__':
     g = Game()
     g.main_loop()
-
-
