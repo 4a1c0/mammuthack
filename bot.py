@@ -11,13 +11,17 @@ from datetime import datetime
 
 async def check_turn(client,timestamps, usersresponse):
     while True:
-        await asyncio.sleep(5)
+        await asyncio.sleep(1)
         # threading.Timer(5.0, check_turn, [client,timestamps, usersresponse]).start()
         for channel, time in timestamps.items(): 
-            if datetime.timestamp(datetime.now()) - time  > 10 and datetime.timestamp(datetime.now()) - time  < 30:
+            if datetime.timestamp(datetime.now()) - time  > 10 and datetime.timestamp(datetime.now()) - time  < 11:
                 for user, val in usersresponse[channel].items():
                     if val == 0:
                         await client.get_user(user.id).send("Respon")
+            if datetime.timestamp(datetime.now()) - time  > 20 and datetime.timestamp(datetime.now()) - time  < 21:
+                for user, val in usersresponse[channel].items():
+                    if val == 0:
+                        await client.get_user(user.id).send("Massa Tard")
           
 
 
@@ -104,7 +108,7 @@ async def on_message(message):
             timestamps[current_channel] = datetime.timestamp(datetime.now())
             for user in games[current_channel]:
                 usersresponse[current_channel] = {user : 0 }
-            await check_turn(client,timestamps, usersresponse)
+            # await check_turn(client,timestamps, usersresponse)
             # channelgame[current_channel] = Game()
 
             # resp = channelgame[current_channel].Start()
