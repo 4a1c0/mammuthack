@@ -8,6 +8,7 @@ import threading
 import asyncio
 
 from datetime import datetime
+from game_engine import Game
 
 
 
@@ -116,6 +117,13 @@ async def on_message(message):
                         await client.get_user(user.id).send("Private DM")
 
                     #TODO: juego iniciado asyncronamente
+                    game = Game(
+                        players=[Game.Player(
+                            i, user.id,
+                            {'active': True},
+                            {'gems': 0, 'p_gems': 0}) for i, user in enumerate(games[current_channel])],
+                    )
+                    threading.Thread(target=game.main_loop).start()
 
             await message.channel.send(msg)
             await message.channel.send("Game ")

@@ -1,16 +1,24 @@
 #!/bin/env python3
-from collections import deque
+import os
+import time
 import copy
 import random
+import threading
+from threading import Thread
+from collections import deque
 
 ESPERANT_RESPOSTA = False
-
+check = threading.Condition()
+mesage = 'coma'
 
 class Game:
     def __init__(self, players=None, rounds=None, board=None, rules=None, event_list=None):
         class Pile:
             pass
-        
+
+        global check
+        check.adquire()
+
         self.deck = Deck()
 
         # Cartas que estan en el juego en una ronda
@@ -136,7 +144,9 @@ class Game:
 
         # Espera la resposta dels jugadors de si segueixen o no, el bot.py haura de posar un evento a la cua
         def esperar_resposta(target, **kargs):
-            ESPERANT_RESPOSTA = True
+            global check
+            check.wait()
+
             print(self.board)
 
             active_players = [p for p in self.players if p.public['active']]
