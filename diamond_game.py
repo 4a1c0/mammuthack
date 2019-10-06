@@ -1,3 +1,20 @@
+class Round:
+    """5 rondas"""
+    """Ronda, contiene el turno/stage de todos los jugadores"""
+
+    def __init__(self, players, event, order=False):
+        self.players = players if players else []
+        self.event = event
+        self.order = False
+
+    def __enter__(self):
+        return self.event
+
+    def __exit__(self):
+        for p in self.players:
+            p.public['active'] = True
+
+
 class Turn:
     """cueva hasta que no queden jugadores x5"""
     """Turno, contiene las fases de los jugadores involucrados"""

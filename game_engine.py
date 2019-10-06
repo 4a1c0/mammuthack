@@ -5,37 +5,46 @@ import random
 
 ESPERANT_RESPOSTA = False
 
+
 class Game:
     def __init__(self, players=None, rounds=None, board=None, rules=None, event_list=None):
-        
         class Pile:
             pass
         
         self.deck = Deck()
 
-        #Cartas que estan en el juego en una ronda
+        # Cartas que estan en el juego en una ronda
         self.cartas_jugadas = []
 
         self.players = players if players else [
-            self.Player(x, 'test' + str(x), {'active': True}, {'gems': 0}) for x in range(5)
+            self.Player(x, 'test' + str(x),
+                        {'active': True},
+                        {'gems': 0, 'p_gems': 0}) for x in range(2)
         ]
 
-        self.rounds = rounds if rounds else [
+        """self.rounds = rounds if rounds else [
             self.Round(players, None, order=True) for x in range(5)
-        ]
+        ]"""
 
         self.board = board if board else \
             self.Board(
-                desk=Deck(['Card(' + str(n) + ')' for n in range(30)]),
-                discard=Pile(),
-                visible=Pile(),
-                counter=5
+                diamants_restants=0,
+                retrieved_relics=0
             )
 
     class Board:
         def __init__(self, **kwargs):
             for k in kwargs:
                 self.__dict__[k] = kwargs[k]
+            self.ronda = 0
+            self.turno = 0
+            self.fase = 0
+
+        def reset_round(self):
+            pass
+
+        def __repr__(self):
+            return f'Board({self.__dict__})'
 
     class Player:
         def __init__(self, pid=0, name='unknown', public=None, private=None, game_state=None):
@@ -45,29 +54,14 @@ class Game:
             self.private = private if private else {}           # private to this player
             self.game_state = game_state if game_state else {}  # only redable by game
 
-    class Round:
-        """5 rondas"""
-        """Ronda, contiene el turno/stage de todos los jugadores"""
-
-        def __init__(self, players, event, order=False):
-            self.players = players if players else []
-            self.event = event
-            self.order = False
-
-        def __enter__(self):
-            return self.event
-
-        def __exit__(self):
-            for p in self.players:
-                p.public['active'] = True
-
-
+        def __repr__(self):
+            return f'Player(ID: {self.pid:03d}, {self.private})\n'
 
     class EventQueue(deque):
         def execute(self):
             event = self.popleft()
             next_events = event.execute()
-            #print(next_events)
+            # print(next_events)
 
     class Event:
         """Acciones que generan una reaccion
@@ -83,81 +77,119 @@ class Game:
             self.function = function
             self.parameters = parameters
 
-        def execute(self, target=None, **parameters):
-            self.function(target if target else self.target, **parameters)
-
+        def execute(self):  # , target=None, **parameters):
+            self.function(self.target, **self.parameters)
 
     # Events del joc que es criden entre ells
     def main_loop(self):
-                
         # Primera fase que es crida, test
         def introduction(target, **kargs):
             print('hola')
 
-
         # Inici del primer torn
         def initial_turn(target, **kargs):
-            self.createDeck()
+            self.create_deck()
             random.shuffle(self.deck.cards)
             event_queue.append(self.Event('turn', 'descripcio', self.board, standard_turn))
 
         # Torn normal de revelar carta i decidir que fer
         def standard_turn(target, **kargs):
+            self.board.turno += 1
+            print(f'\n Turno {self.board.turno}')
 
             carta = self.deck.cards.pop()
             self.cartas_jugadas.append(carta)
 
-            print(self.cartas_jugadas[0].name)
+            # print(self.deck.cards[-5:])
+            print(self.cartas_jugadas, f'Deck: {len(self.deck.cards)} cartas')
 
-            if(carta.cardType == "Tresor"):
-                event_queue.append(self.Event('repartir', 'descripcio', self.board, repartir))
+
+            if carta.cardType == "Tresor":
+                event_queue.append(self.Event('repartir', 'descripcio', None, repartir,
+                                              diamonds=carta.effects['reparteix']))
             else:
-                event_queue.append(self.Event('comprovar_estat', 'descripcio', self.board, comprovar_estat))
+                event_queue.append(self.Event('comprovar_estat', 'descripcio', carta, comprovar_estat))
 
         # Reparteix els diamants entre els jugadors actius com a diamants de la ronda
-        def repartir(target, **kargs):
+        def repartir(target, diamonds=0, **kargs):
+            active_players = [p for p in self.players if p.public['active']]
 
-            # No entenc com s'han codificat les coses de jugadors
-            # No veig on esta codificat lo de deixar els diamants sobrants a la ruta
+            # print(kargs)
+            for ap in active_players:
+                print('repartido ', diamonds//len(active_players), ' a ', ap.pid)
+                ap.private['p_gems'] += diamonds//len(active_players)
 
+            self.board.diamants_restants += diamonds%len(active_players)
+            print('remain ', self.board.diamants_restants, ' al tabler')
             event_queue.append(self.Event("esperar_resposta", "descripcio", self.board, esperar_resposta))
 
         # Comprova que no hi hagi cap trampa repetida a la llista de cartes jugades
         def comprovar_estat(target, **kargs):
-            
-            trampa_repetida = False
-            for i in self.cartas_jugadas[:-1]:
-                if(i.name == self.cartas_jugadas[-1].name):
-                    trampa_repetida = True
-                    # Treure els jugadors de la cova i fer perdre diamants
+            if target.cardType == 'Trampa' and target in self.cartas_jugadas[:-1]:
+                self.cartas_jugadas.pop()
 
-                    # Torna a guardar les cartes menys la trampa repe
-                    self.deck.add(self.cartas_jugadas[:-1])
-                    # Començar la seguent ronda (ficar als jugadors a la nova cova i torn normal)
-                    event_queue.append(self.Event("seguent_ronda", "descripcio", self.board, seguent_ronda))
-                    break
-            
-            # Si ha sortit una trampa per primer cop o una reliquia, es segueix normal
-            if(trampa_repetida == False):
+                # Començar la seguent ronda (ficar als jugadors a la nova cova i torn normal)
+                event_queue.append(self.Event("seguent_ronda", "descripcio", self.board, seguent_ronda))
+            else:
+                # Si ha sortit una trampa per primer cop o una reliquia, es segueix normal
                 event_queue.append(self.Event("esperar_resposta", "descripcio", self.board, esperar_resposta))
-            
 
         # Espera la resposta dels jugadors de si segueixen o no, el bot.py haura de posar un evento a la cua
         def esperar_resposta(target, **kargs):
             ESPERANT_RESPOSTA = True
-            print("ESPERANT JUGADORS")
+            print(self.players, self.board)
+
+            active_players = [p for p in self.players if p.public['active']]
+            retired_players = []
+            active_num = 0
+            for ap in active_players:
+                ap.public['active'] = (input(f'JUGADOR {ap.pid} continue? ') == '1')
+                if ap.public['active']:
+                    active_num += 1
+                else:
+                    retired_players.append(ap)
+
+            for rp in retired_players:
+                ap.private['gems'] += ap.private['p_gems'] + self.board.diamants_restants//len(retired_players)
+                ap.private['p_gems'] = 0
+
+            if retired_players:
+                self.board.diamants_restants = self.board.diamants_restants%len(retired_players)
+                if len(retired_players) == 1:
+                    for c in self.cartas_jugadas:
+                        if c.cardType == 'Reliquia':
+                            self.cartas_jugadas.remove(c)
+                            retired_players[0].private['gems'] += 10  # TODO - Reliquias bien
+
+            print(self.players)
+            if active_num:
+                print('Fin del Turno')
+                event_queue.append(self.Event('turn', 'descripcio', self.board, standard_turn))
+            else:
+                print('Fin de la Ronda')
+                event_queue.append(self.Event("seguent_ronda", "descripcio", self.board, seguent_ronda))
 
         # Ficar als jugadors a la nova cova i torn normal
         def seguent_ronda(target, **kargs):
-            pass
-        
-        # FALTA DEFINIR QUE PASSA QUAN CONTESTEN ELS JUGADORS: 
-        #       REPARTIR RELIQUIES I TREURE DEL DECK
-        #       REPARTIR DIAMANTS ENTRE ELS QUE ES RETIREN
-        #       ACABAR RONDA SI ES RETIREN TOTS
+            self.board.turno = 0
+            self.board.ronda += 1
+            if self.board.ronda >= 5:
+                print('Fin del Juego')
+            print(f'\n\n Ronda {self.board.ronda + 1}')
 
+            for c in self.cartas_jugadas:
+                if c.cardType == 'Reliquia':
+                    self.cartas_jugadas.remove(c)
 
+            # Torna a guardar les cartes menys la trampa repeteix
+            self.deck.reshuffle(self.cartas_jugadas)
+            self.cartas_jugadas = []
 
+            self.board.diamants_restants = 0
+            for p in self.players:
+                p.public['active'] = True
+
+            event_queue.append(self.Event('turn', 'descripcio', self.board, standard_turn))
 
         # Cua d'events
         event_queue = self.EventQueue([
@@ -168,47 +200,19 @@ class Game:
         while event_queue:
             event_queue.execute()
 
-    def createDeck(self):
-
+    def create_deck(self):
         tresors = [Card(str(x) + " diamants!", "Reparteix " + str(x) + " diamants.", "Tresor", {"reparteix": x}) for x
                    in range(3, 18)]
 
-        trampes = []
+        trampes = [
+            Card("Trampa d'ariet", "Una trampa d'ariet amb punxes", "Trampa"),
+            Card("Trampa d'aranyes", "Una trampa d'aranyes gegants", "Trampa"),
+            Card("Trampa de serps", "Una trampa amb serps verinoses", "Trampa"),
+            Card("Trampa de roques", "Una trampa de roques", "Trampa"),
+            Card("Trampa de lava", "Una trampa de pou de lava", "Trampa")
+        ]*3
 
-        trampaAriet = Card("Trampa d'ariet", "Una trampa d'ariet amb punxes", "Trampa")
-        trampes.append(trampaAriet)
-        trampes.append(copy.deepcopy(trampaAriet))
-        trampes.append(copy.deepcopy(trampaAriet))
-
-        trampaAranyes = Card("Trampa d'aranyes", "Una trampa d'aranyes gegants", "Trampa")
-        trampes.append(trampaAranyes)
-        trampes.append(copy.deepcopy(trampaAranyes))
-        trampes.append(copy.deepcopy(trampaAranyes))
-
-        trampaSerps = Card("Trampa de serps", "Una trampa amb serps verinoses", "Trampa")
-        trampes.append(trampaSerps)
-        trampes.append(copy.deepcopy(trampaSerps))
-        trampes.append(copy.deepcopy(trampaSerps))
-
-        trampaRoques = Card("Trampa de roques", "Una trampa de roques", "Trampa")
-        trampes.append(trampaRoques)
-        trampes.append(copy.deepcopy(trampaRoques))
-        trampes.append(copy.deepcopy(trampaRoques))
-
-        trampaLava = Card("Trampa de lava", "Una trampa de pou de lava", "Trampa")
-        trampes.append(trampaLava)
-        trampes.append(copy.deepcopy(trampaLava))
-        trampes.append(copy.deepcopy(trampaLava))
-
-        reliquies = []
-
-        reliquia = Card("Una reliquia!", "Una reliquia que te recompensara con diamantes", "Reliquia")
-        reliquies.append(reliquia)
-        reliquies.append(copy.deepcopy(reliquia))
-        reliquies.append(copy.deepcopy(reliquia))
-        reliquies.append(copy.deepcopy(reliquia))
-        reliquies.append(copy.deepcopy(reliquia))
-        reliquies.append(copy.deepcopy(reliquia))
+        reliquies = [Card("Una reliquia!", "Una reliquia que te recompensara con diamantes", "Reliquia")]*6
 
         self.deck.add(tresors)
         self.deck.add(trampes)
@@ -222,7 +226,9 @@ class Card:
         self.description = description
         self.cardType = card_type
         self.effects = effects if effects else {}
-    pass
+
+    def __repr__(self):
+        return f'Card({self.name}, type: {self.cardType}), {self.effects}\n'
 
 
 class Deck:
@@ -232,6 +238,10 @@ class Deck:
             self.cards = self.cards + card
         else:
             self.cards.append(card)
+
+    def reshuffle(self, readd):
+        self.cards += readd
+        random.shuffle(self.cards)
 
     def __init__(self, cards=[]):
         self.cards = []
