@@ -49,8 +49,10 @@ async def on_message(message):
     if message.content.startswith('!test'):
         await message.channel.send(message.channel.type)
 
+    # Message viene de un canal de texto (no mensaje directo)
     if str(message.channel.type) == "text":
 
+        # Help
         if message.content.startswith('!help'):
             msg = '''   !join - 
     !start - 
@@ -61,16 +63,19 @@ async def on_message(message):
     '''
             await message.channel.send(msg)
         
+        # Test susurro
         if message.content.startswith('!whisper'):
             #user=await client.get_user_info(message.author.id)
             await message.author.send("I'm a very tall midget")
         
-    
-
+        # Unirse a partida
         if message.content.startswith('!join'):
             current_channel = str(message.channel.guild) + str(message.channel.id)
             msg = 'User {0.author.mention} is included in the {1} game'.format(message, current_channel)
+            
+            # Si ya existe un juego activo en este canal
             if current_channel in games:
+                # No permitir jugadores repetidos
                 if message.author in games[current_channel]:
                     msg = '{0.author.mention} is already in {1} game'.format(message, current_channel)
                 else:
@@ -81,6 +86,7 @@ async def on_message(message):
             
             await message.channel.send(msg)
 
+        # Ver los usuarios en el juego actual en el canal actual
         if message.content.startswith('!users'):
             current_channel = str(message.channel.guild) + str(message.channel.id)
             msg = '''Joined users in game:
@@ -93,6 +99,7 @@ async def on_message(message):
                 msg = ''' No users in THE GAME'''
             await message.channel.send(msg)
         
+        # Inicia el juego en este canal
         if message.content.startswith('!start'):
             current_channel = str(message.channel.guild) + str(message.channel.id)
             if current_channel in games:
@@ -102,11 +109,18 @@ async def on_message(message):
                     msg = '''Too much people'''
                 else:
                     msg = '''The GAME starts'''
+
+                    # Games es un diccionario: key = canal, val = lista de usuarios
                     for user in games[current_channel]:
                         users[user.id] = current_channel
                         await client.get_user(user.id).send("Private DM")
+
+                    #TODO: juego iniciado asyncronamente
+
             await message.channel.send(msg)
             await message.channel.send("Game ")
+
+            #Check en el futuro (?)
             timestamps[current_channel] = int(datetime.timestamp(datetime.now()))
             for user in games[current_channel]:
                 usersresponse[current_channel] = {user : 0 }
@@ -124,11 +138,15 @@ async def on_message(message):
                 msg = "No game has started "
 
             await message.author.send(msg)
+
+        # Jugador quiere seguir    
         if message.content.startswith('!continue'):
             if message.author.id in users:
+                # usersrespones es un dict: key=channelID, val = lista de usuarios en ese juego
                 usersresponse[users[message.author.id]][message.author.id]= 1
                 await check_turn(client,timestamps, usersresponse)
 
+        # Jugador no quiere seguir
         if message.content.startswith('!leave'):
             if message.author.id in users:
                 usersresponse[users[message.author.id]][message.author.id]= -1
