@@ -19,7 +19,7 @@ class Game:
         self.players = players if players else [
             self.Player(x, 'test' + str(x),
                         {'active': True},
-                        {'gems': 0, 'p_gems': 0}) for x in range(2)
+                        {'gems': 0, 'p_gems': 0}) for x in range(3)
         ]
 
         """self.rounds = rounds if rounds else [
@@ -55,7 +55,7 @@ class Game:
             self.game_state = game_state if game_state else {}  # only redable by game
 
         def __repr__(self):
-            return f'Player(ID: {self.pid:03d}, {self.private})\n'
+            return f'Player({self.public} , ID: {self.pid:03d}, {self.private})\n'
 
     class EventQueue(deque):
         def execute(self):
@@ -90,7 +90,7 @@ class Game:
         def initial_turn(target, **kargs):
             self.create_deck()
             random.shuffle(self.deck.cards)
-            event_queue.append(self.Event('turn', 'descripcio', self.board, standard_turn))
+            event_queue.append(self.Event('turn', 'descripcio', self.board, seguent_ronda))
 
         # Torn normal de revelar carta i decidir que fer
         def standard_turn(target, **kargs):
@@ -137,7 +137,7 @@ class Game:
         # Espera la resposta dels jugadors de si segueixen o no, el bot.py haura de posar un evento a la cua
         def esperar_resposta(target, **kargs):
             ESPERANT_RESPOSTA = True
-            print(self.players, self.board)
+            print(self.board)
 
             active_players = [p for p in self.players if p.public['active']]
             retired_players = []
@@ -150,8 +150,8 @@ class Game:
                     retired_players.append(ap)
 
             for rp in retired_players:
-                ap.private['gems'] += ap.private['p_gems'] + self.board.diamants_restants//len(retired_players)
-                ap.private['p_gems'] = 0
+                rp.private['gems'] += rp.private['p_gems'] + self.board.diamants_restants//len(retired_players)
+                rp.private['p_gems'] = 0
 
             if retired_players:
                 self.board.diamants_restants = self.board.diamants_restants%len(retired_players)
@@ -173,9 +173,9 @@ class Game:
         def seguent_ronda(target, **kargs):
             self.board.turno = 0
             self.board.ronda += 1
-            if self.board.ronda >= 5:
+            if self.board.ronda > 5:
                 print('Fin del Juego')
-            print(f'\n\n Ronda {self.board.ronda + 1}')
+            print(f'\n\n Ronda {self.board.ronda}\n', self.players)
 
             for c in self.cartas_jugadas:
                 if c.cardType == 'Reliquia':
@@ -188,6 +188,7 @@ class Game:
             self.board.diamants_restants = 0
             for p in self.players:
                 p.public['active'] = True
+                p.private['p_gems'] = 0
 
             event_queue.append(self.Event('turn', 'descripcio', self.board, standard_turn))
 
