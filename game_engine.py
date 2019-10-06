@@ -16,8 +16,8 @@ class Game:
         class Pile:
             pass
 
-        global check
-        check.adquire()
+        # global check
+        # check.adquire()
 
         self.deck = Deck()
 
@@ -63,7 +63,7 @@ class Game:
             self.game_state = game_state if game_state else {}  # only redable by game
 
         def __repr__(self):
-            return f'Player({self.public} , ID: {self.pid:03d}, {self.private})\n'
+            return f'Player({self.public} , ID: {self.pid:03d}, {self.name},\n {self.private})\n'
 
     class EventQueue(deque):
         def execute(self):
@@ -144,8 +144,8 @@ class Game:
 
         # Espera la resposta dels jugadors de si segueixen o no, el bot.py haura de posar un evento a la cua
         def esperar_resposta(target, **kargs):
-            global check
-            check.wait()
+            # global check
+            # check.wait()
 
             print(self.board)
 
@@ -259,5 +259,10 @@ class Deck:
 
 
 if __name__ == '__main__':
-    g = Game()
-    g.main_loop()
+    game = Game(
+        players=[Game.Player(
+            i, 'l',
+            {'active': True},
+            {'gems': 0, 'p_gems': 0}) for i, user in enumerate(['a', 'b', 'c', 'd', 'e'])],
+    )
+    threading.Thread(target=game.main_loop).start()
